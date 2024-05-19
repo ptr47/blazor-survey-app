@@ -1,0 +1,34 @@
+@page "/survey/create"
+
+@using WebApp.Models
+@using System.ComponentModel.DataAnnotations
+
+<h1>Create New Survey</h1>
+
+<EditForm Model="@Model" OnValidSubmit="Submit" FormName="SurveyData">
+    <DataAnnotationsValidator />
+    <div class="form-group m-3">
+            <label for="Title">Title:</label>
+            <InputText Id="Title" Class="form-control" @bind-Value="Model.Title" />
+            <ValidationMessage For="@(() => Model.Title)" />
+    </div>
+    @*! Needs to be changed for dynamic question creation system
+    <div class="form-group m-3">
+            <label for="NumberOfQuestions">Number of Questions:</label>
+            <InputNumber Id="NumberOfQuestions" Class="form-control" @bind-Value="Model!.NumberOfQuestions" />
+            <ValidationMessage For="@(() => Model.NumberOfQuestions)" />
+    </div> *@ 
+    <div class="form-group m-3">
+        <button type="submit" class="btn btn-primary">Submit</button>
+    </div>
+</EditForm>
+
+
+@code {
+    [SupplyParameterFromForm]
+    public Survey? Model { get; set; }
+    protected override void OnInitialized() => Model ??= new();
+    public void Submit() {
+        // TODO
+    }
+}
