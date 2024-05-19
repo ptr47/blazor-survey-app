@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace BlazorSurvey
+namespace WebApp.Models
 {
     public enum QuestionType
     {
