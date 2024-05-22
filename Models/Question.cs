@@ -19,6 +19,7 @@ namespace WebApp.Models
 
         public decimal? NumericRangeMin { get; set; }
         public decimal? NumericRangeMax { get; set; }
+        public List<string>? Answers { get; set; }
 
     }
 }

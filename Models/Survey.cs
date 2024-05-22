@@ -10,7 +10,7 @@ namespace WebApp.Models
         [Required]
         [StringLength(99)]
         public string Title { get; set; }
-        public IEnumerable<Question> Questions { get; set; }
-        public IEnumerable<Answer> Answers { get; set; }
+        public ICollection<Question> Questions { get; set; }
+        public ICollection<SurveyResponse>? Responses { get; set; }
     }
 }
