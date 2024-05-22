@@ -5,7 +5,8 @@
 
 <h1>Create New Survey</h1>
 
-<EditForm Model="@Survey" OnValidSubmit="Submit" FormName="SurveyData">
+
+@* <EditForm Model="@Survey" OnValidSubmit="Submit" FormName="SurveyData">
     <DataAnnotationsValidator />
     <div class="form-group m-3">
         <label>Title:</label>
@@ -15,16 +16,9 @@
     <div class="form-group m-3">
         <button type="submit" class="btn btn-primary">Submit</button>
     </div>
-</EditForm>
+</EditForm> *@
 
 
 @code {
-    [SupplyParameterFromForm]
-    public Survey? Survey { get; set; }
-    protected override void OnInitialized() => Survey ??= new();
-    public void Submit()
-    {
-        // TODO
-    }
 
 }
