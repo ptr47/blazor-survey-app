@@ -2,7 +2,10 @@
 
 @using WebApp.Models
 @using System.ComponentModel.DataAnnotations
+@using Microsoft.AspNetCore.Authorization
 
+@attribute [Authorize]
+<AuthorizeView>
 <h1>Create New Survey</h1>
 
 
@@ -18,7 +21,7 @@
     </div>
 </EditForm> *@
 
-
+</AuthorizeView>
 @code {
 
 }
