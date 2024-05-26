@@ -9,10 +9,10 @@ namespace WebApp.Models
         MultipleChoice,
         OpenEndedText
     }
-    public class Question(string title)
+    public class Question()
     {
         public int Id { get; set; }
-        public string Title { get; set; } = title;
+        public string Title { get; set; }
         public QuestionType Type { get; set; }
 
         public List<string>? Answers { get; set; }
