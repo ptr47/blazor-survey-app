@@ -15,7 +15,7 @@ namespace WebApp.Models
         public string Title { get; set; }
         public QuestionType Type { get; set; }
 
-        public List<string>? Answers { get; set; }
+        public IList<Answer>? Answers { get; set; }
 
     }
 }

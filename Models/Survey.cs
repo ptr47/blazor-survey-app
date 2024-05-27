@@ -1,3 +1,4 @@
+using System.Collections;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -10,7 +11,7 @@ namespace WebApp.Models
         [Required]
         [StringLength(99)]
         public string Title { get; set; }
-        public ICollection<Question> Questions { get; set; }
+        public IList<Question> Questions { get; set; }
 
     }
 }

@@ -2,46 +2,88 @@
 
 @using WebApp.Models
 @using System.ComponentModel.DataAnnotations
-@using Microsoft.AspNetCore.Authorization
 
-@attribute [Authorize]
+@rendermode InteractiveServer
 
 <h1>Create New Survey</h1>
-<EditForm Model="survey" OnValidSubmit="Submit" FormName="CreateSurvey" @key="survey">
-    <div class="form-control">
-        <InputText placeholder="Title" @bind-Value="@survey.Title" />
+
+<EditForm Model="@survey" OnValidSubmit="HandleValidSubmit" FormName="CreateSurvey">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="form-group">
+        <label for="title">Survey Title</label>
+        <InputText id="title" class="form-control" @bind-Value="survey.Title" />
     </div>
-    @* <div class="form-control">
-        <InputNumber @bind-Value="@survey.QuestionNumber" />
-    </div> *@
-    @* <br />
-    <div class="form-control">
-        @foreach (var question in survey.Questions)
-        {
-            <InputText placeholder="Question title" @bind-Value="@question.Title" />
-            <InputSelect @bind-Value="@question.Type">
-                <option value="MultipleChoice">Multiple Choice</option>
-                <option value="SingleChoice">Open-ended</option>
+
+    <h3>Questions</h3>
+    @foreach (var question in survey.Questions)
+    {
+        <div class="form-group">
+            <label for="question-title">Question Title</label>
+            <InputText id="question-title" class="form-control" @bind-Value="question.Title" />
+        </div>
+        <div class="form-group">
+            <label for="question-type">Question Type</label>
+            <InputSelect id="question-type" class="form-control" @bind-Value="question.Type">
+                <option value="@QuestionType.SingleChoice">Single Choice</option>
+                <option value="@QuestionType.MultipleChoice">Multiple Choice</option>
+                <option value="@QuestionType.OpenEndedText">Open Ended Text</option>
             </InputSelect>
+        </div>
+        @if (question.Type == QuestionType.SingleChoice || question.Type == QuestionType.MultipleChoice)
+        {
+            <div class="form-group">
+                <label>Answers</label>
+                @foreach (var answer in question.Answers)
+                {
+                    <div class="input-group mb-2">
+                        <InputText class="form-control" @bind-Value="answer.Text" />
+                        <div class="input-group-append">
+                            <button type="button" class="btn btn-danger" @onclick="() => RemoveAnswer(question, answer)">Remove</button>
+                        </div>
+                    </div>
+                }
+                <button type="button" class="btn btn-secondary" @onclick="() => AddAnswer(question)">Add Answer</button>
+            </div>
         }
-    </div> *@
-    <div>
-        <button type="submit" class="btn btn-primary">Submit</button>
-    </div>
+        <button type="button" class="btn btn-danger" @onclick="() => RemoveQuestion(question)">Remove Question</button>
+        <hr />
+    }
+    <button type="button" class="btn btn-secondary" @onclick="AddQuestion">Add Question</button>
+    <br /><br />
+    <button type="submit" class="btn btn-primary">Create Survey</button>
 </EditForm>
 
-
 @code {
-    [SupplyParameterFromForm]
-    public Survey survey { get; set; }
-    protected override void OnInitialized()
+    private Survey survey = new Survey
     {
-        base.OnInitialized();
-        survey = new();
-        survey.Questions = new List<Question>();
-    }
-    public void Submit()
-    {
+        Questions = new List<Question>()
+    };
 
+    private void AddQuestion()
+    {
+        survey.Questions.Add(new Question { Answers = new List<Answer>() });
+    }
+
+    private void RemoveQuestion(Question question)
+    {
+        survey.Questions.Remove(question);
+    }
+
+    private void RemoveAnswer(Question question, Answer answer)
+    {
+        question.Answers.Remove(answer);
+    }
+
+    private void AddAnswer(Question question)
+    {
+        question.Answers.Add(new());
+    }
+
+    private void HandleValidSubmit()
+    {
+        // TODO
+        Console.WriteLine("Survey Submitted!");
     }
 }
