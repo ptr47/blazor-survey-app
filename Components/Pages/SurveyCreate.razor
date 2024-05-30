@@ -2,8 +2,9 @@
 
 @using WebApp.Models
 @using System.ComponentModel.DataAnnotations
-
 @rendermode InteractiveServer
+
+@inject NavigationManager NavigationManager
 
 <h1>Create New Survey</h1>
 
@@ -19,53 +20,90 @@
     <h3>Questions</h3>
     @foreach (var question in survey.Questions)
     {
-        <div class="form-group">
-            <label for="question-title">Question Title</label>
-            <InputText id="question-title" class="form-control" @bind-Value="question.Title" />
+        <div class="row">
+            <div class="col-md-10 form-group">
+                <label for="question-title">Question Title</label>
+                <InputText id="question-title" class="form-control" @bind-Value="question.Title" />
+            </div>
+            <div class="col-md-2 form-group">
+                <label for="question-type">Question Type</label>
+                <InputSelect id="question-type" class="form-control" @bind-Value="question.Type"
+                @bind-Value:after="() => SelectionChange(question)">
+                    <option value="@QuestionType.SingleChoice">Single Choice</option>
+                    <option value="@QuestionType.MultipleChoice">Multiple Choice</option>
+                    <option value="@QuestionType.OpenEndedText">Open Ended Text</option>
+                </InputSelect>
+            </div>
         </div>
-        <div class="form-group">
-            <label for="question-type">Question Type</label>
-            <InputSelect id="question-type" class="form-control" @bind-Value="question.Type">
-                <option value="@QuestionType.SingleChoice">Single Choice</option>
-                <option value="@QuestionType.MultipleChoice">Multiple Choice</option>
-                <option value="@QuestionType.OpenEndedText">Open Ended Text</option>
-            </InputSelect>
-        </div>
+
         @if (question.Type == QuestionType.SingleChoice || question.Type == QuestionType.MultipleChoice)
         {
-            <div class="form-group">
+            <div class="form-group card mt-2 mb-2 p-4">
                 <label>Answers</label>
                 @foreach (var answer in question.Answers)
                 {
                     <div class="input-group mb-2">
                         <InputText class="form-control" @bind-Value="answer.Text" />
-                        <div class="input-group-append">
-                            <button type="button" class="btn btn-danger" @onclick="() => RemoveAnswer(question, answer)">Remove</button>
-                        </div>
+                        @if (question.Answers.Count > 2)
+                        {
+                            <div class="input-group-append">
+                                <button type="button" class="btn btn-danger"
+                                @onclick="() => RemoveAnswer(question, answer)">Remove</button>
+                            </div>
+                        }
                     </div>
                 }
-                <button type="button" class="btn btn-secondary" @onclick="() => AddAnswer(question)">Add Answer</button>
+                <button type="button" class="btn btn-secondary mb-2" @onclick="() => AddAnswer(question)">Add Answer</button>
             </div>
         }
-        <button type="button" class="btn btn-danger" @onclick="() => RemoveQuestion(question)">Remove Question</button>
-        <hr />
+        @if (survey.Questions.Count > 1)
+        {
+            <div class="text-center">
+                <button type="button" class="btn btn-danger mt-2" @onclick="() => RemoveQuestion(question)">Remove
+                    Question</button>
+            </div>
+        }
+        <hr class="border-bottom border-width-thick" />
     }
-    <button type="button" class="btn btn-secondary" @onclick="AddQuestion">Add Question</button>
-    <br /><br />
-    <button type="submit" class="btn btn-primary">Create Survey</button>
+    <div class="text-center">
+        <button type="button" class="btn btn-secondary" @onclick="AddQuestion">Add Question</button>
+        <br /><br />
+        <button type="submit" class="btn btn-primary">Create Survey</button>
+    </div>
 </EditForm>
 
 @code {
-    private Survey survey = new Survey
+    [SupplyParameterFromForm]
+    private Survey survey { get; set; }
+
+    protected override void OnInitialized()
     {
-        Questions = new List<Question>()
-    };
+        survey = new Survey
+        {
+            Questions = new List<Question>()
+        };
+        AddQuestion();
+    }
 
     private void AddQuestion()
     {
         survey.Questions.Add(new Question { Answers = new List<Answer>() });
+        survey.Questions.Last().Answers.Add(new());
+        survey.Questions.Last().Answers.Add(new());
     }
+    private void SelectionChange(Question question)
+    {
 
+        if (question.Type == QuestionType.OpenEndedText)
+        {
+            question.Answers.Clear();
+        }
+        else if (question.Answers.Count == 0)
+        {
+            question.Answers.Add(new());
+            question.Answers.Add(new());
+        }
+    }
     private void RemoveQuestion(Question question)
     {
         survey.Questions.Remove(question);
@@ -81,7 +119,7 @@
         question.Answers.Add(new());
     }
 
-    private void HandleValidSubmit()
+    private async Task HandleValidSubmit()
     {
         // TODO
         Console.WriteLine("Survey Submitted!");
