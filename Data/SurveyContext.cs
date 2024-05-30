@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using WebApp.Models;
 
 namespace WebApp.Data
 {
@@ -10,6 +11,7 @@ namespace WebApp.Data
 
         public SurveyContext(DbContextOptions<SurveyContext> options) : base(options)
         {
+
         }
     }
 }

@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using WebApp.Components;
 using WebApp.Components.Account;
 using WebApp.Data;
+using WebApp.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -15,6 +16,10 @@ builder.Services.AddCascadingAuthenticationState();
 builder.Services.AddScoped<IdentityUserAccessor>();
 builder.Services.AddScoped<IdentityRedirectManager>();
 builder.Services.AddScoped<AuthenticationStateProvider, IdentityRevalidatingAuthenticationStateProvider>();
+builder.Services.AddDbContext<SurveyContext>(options =>
+    options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
+builder.Services.AddScoped<SurveyCreateService>();
+
 builder.Services.AddBlazorBootstrap();
 
 builder.Services.AddAuthentication(options =>
