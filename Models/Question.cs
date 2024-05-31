@@ -11,12 +11,13 @@ namespace WebApp.Models
     public class Question()
     {
         [Key]
-        public int Id { get; set; }
+        public Guid Id { get; set; }
         [Required(ErrorMessage = "Question title is required.")]
         public string Title { get; set; }
         public QuestionType Type { get; set; }
 
         public IList<Answer>? Answers { get; set; }
+        public Survey Survey { get; set;}
 
     }
 }
