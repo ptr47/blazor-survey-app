@@ -1,5 +1,4 @@
 using System.ComponentModel.DataAnnotations;
-using Microsoft.EntityFrameworkCore;
 
 namespace WebApp.Models
 {
@@ -12,16 +11,17 @@ namespace WebApp.Models
     public class Question()
     {
         [Key]
-        public Guid Id { get; set; }
+        public Guid Id { get; set; } = Guid.NewGuid();
         [Required(ErrorMessage = "Question title is required.")]
+        [StringLength(99)]
         public string Title { get; set; }
+        [Required]
         public QuestionType Type { get; set; }
-
-        public IList<Answer>? Answers { get; set; }
         public Survey Survey { get; set;}
 
+        public ICollection<Answer>? Answers { get; set; }
+
     }
-    [Owned]
     public class Answer()
     {
         public string Text { get; set; }

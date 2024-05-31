@@ -5,7 +5,7 @@ namespace WebApp.Models
     public class Survey()
     {
         [Key]
-        public Guid Id { get; set; }
+        public Guid Id { get; set; } = Guid.NewGuid();
         public string UserId { get; set; }
         [Required(ErrorMessage ="Survey Title is required")]
         [StringLength(99)]

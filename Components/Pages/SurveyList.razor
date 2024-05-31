@@ -1,0 +1,81 @@
+@page "/survey/list"
+
+@rendermode InteractiveServer
+@using WebApp.Models
+@using WebApp.Data
+@using System.ComponentModel.DataAnnotations
+@using Microsoft.EntityFrameworkCore
+@using Microsoft.AspNetCore.Components.Authorization
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject SurveyContext SurveyContext
+
+<AuthorizeView>
+    <NotAuthorized>
+        <WebApp.Components.Account.Shared.RedirectToLogin />
+    </NotAuthorized>
+</AuthorizeView>
+
+<h3>Your Surveys</h3>
+
+@if (surveys == null)
+{
+    <p>Loading...</p>
+}
+else if (surveys.Count == 0)
+{
+    <p>No surveys found.</p>
+}
+else
+{
+    @foreach (var survey in surveys)
+{
+    <div class="p-4 m-2 card" @onclick="() => ShowSurveyDetails(survey)">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+            <h3>@survey.Title</h3>
+            <button class="btn btn-danger" @onclick="() => DeleteSurvey(survey)">
+                <i class="fas fa-trash"></i>
+            </button>
+        </div>
+        <button class="btn btn-info mb-2" @onclick="() => ShowStatistics(survey)">Statistics</button>
+    </div>
+}
+
+}
+
+@code {
+    private List<Survey> surveys;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        if (user.Identity.IsAuthenticated)
+        {
+            var userId = user.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            surveys = await SurveyContext.Surveys
+            .Where(s => s.UserId == userId)
+            .ToListAsync();
+        }
+    }
+    private void EditSurvey(Survey survey)
+    {
+        // Implement edit logic here
+    }
+
+    private void DeleteSurvey(Survey survey)
+    {
+        // Implement delete logic here
+    }
+
+    private void ShowStatistics(Survey survey)
+    {
+        // Implement statistics display logic here
+    }
+
+    private void ShowSurveyDetails(Survey survey)
+    {
+        Console.WriteLine("Survey clicked");
+        // Navigate to a page or show modal to display survey details
+    }
+}

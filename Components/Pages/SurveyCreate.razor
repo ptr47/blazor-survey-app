@@ -12,6 +12,12 @@
 
 <h1>Create New Survey</h1>
 
+<AuthorizeView>
+    <NotAuthorized>
+        <WebApp.Components.Account.Shared.RedirectToLogin />
+    </NotAuthorized>
+</AuthorizeView>
+
 <EditForm Model="@survey" OnValidSubmit="HandleValidSubmit" FormName="CreateSurvey">
     <DataAnnotationsValidator />
     <ValidationSummary />
@@ -82,25 +88,16 @@
     [SupplyParameterFromForm]
     private Survey survey { get; set; }
     private int nextQuestionNumber = 1;
-    protected override async Task OnInitializedAsync()
-    {
-        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
-        var user = authState.User;
-
-        if (!user.Identity.IsAuthenticated)
-        {
-            Navigation.NavigateTo("Account/Login");
-        }
-    }
     protected override void OnInitialized()
     {
         survey = new();
+        survey.Id = Guid.NewGuid();
         AddQuestion();
     }
 
     private void AddQuestion()
     {
-        survey.Questions.Add(new Question { Title = "Question", Answers = new List<Answer>() });
+        survey.Questions.Add(new Question { Id = Guid.NewGuid(), Title = "Question", Answers = new List<Answer>() });
         survey.Questions.Last().Answers.Add(new() { Text = "Answer" });
         survey.Questions.Last().Answers.Add(new() { Text = "Answer" });
         StateHasChanged();
