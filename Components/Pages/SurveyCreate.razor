@@ -1,12 +1,14 @@
 @page "/survey/create"
 
+@rendermode InteractiveServer
 @using WebApp.Models
 @using WebApp.Data
 @using System.ComponentModel.DataAnnotations
-@rendermode InteractiveServer
+@using Microsoft.AspNetCore.Components.Authorization
 
+@inject AuthenticationStateProvider AuthenticationStateProvider
 @inject SurveyContext SurveyContext
-@inject NavigationManager NavigationManager
+@inject NavigationManager Navigation
 
 <h1>Create New Survey</h1>
 
@@ -79,7 +81,7 @@
 @code {
     [SupplyParameterFromForm]
     private Survey survey { get; set; }
-    private int nextQuestionId = 1;
+    private int nextQuestionNumber = 1;
     protected override void OnInitialized()
     {
         survey = new();
@@ -88,10 +90,9 @@
 
     private void AddQuestion()
     {
-        survey.Questions.Add(new Question { Id = nextQuestionId, Title = "Question", Answers = new List<Answer>() });
+        survey.Questions.Add(new Question { Title = "Question", Answers = new List<Answer>() });
         survey.Questions.Last().Answers.Add(new() { Text = "Answer" });
         survey.Questions.Last().Answers.Add(new() { Text = "Answer" });
-        nextQuestionId += 1;
         StateHasChanged();
     }
     private void SelectionChange(Question question)
@@ -127,9 +128,21 @@
 
     private async Task HandleValidSubmit()
     {
-        SurveyContext.Surveys.Add(survey);
-        await SurveyContext.SaveChangesAsync();
-        NavigationManager.NavigateTo("/");
-        Console.WriteLine("Survey Submitted!");
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        if (user.Identity.IsAuthenticated)
+        {
+            survey.UserId = user.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            SurveyContext.Surveys.Add(survey);
+            await SurveyContext.SaveChangesAsync();
+
+            Navigation.NavigateTo("/survey/success");
+        }
+        else
+        {
+            // Handle the case where the user is not authenticated
+        }
+    }
     }
 }
