@@ -85,6 +85,9 @@
 </EditForm>
 
 @code {
+    [Inject]
+    private ISurveyService _surveyService { get; set; }
+
     [SupplyParameterFromForm]
     private Survey survey { get; set; }
     private int nextQuestionNumber = 1;
@@ -141,8 +144,7 @@
         if (user.Identity.IsAuthenticated)
         {
             survey.UserId = user.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
-            SurveyContext.Surveys.Add(survey);
-            await SurveyContext.SaveChangesAsync();
+            await _surveyService.AddSurveyAsync(survey);
 
             Navigation.NavigateTo("survey/success");
         }
