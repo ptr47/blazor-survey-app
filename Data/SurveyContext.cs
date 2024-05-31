@@ -3,20 +3,16 @@ using WebApp.Models;
 
 namespace WebApp.Data
 {
-    public class SurveyContext : DbContext
+    public class SurveyContext(DbContextOptions<SurveyContext> options) : DbContext(options)
     {
         public DbSet<Survey> Surveys { get; set; }
 
-        public SurveyContext(DbContextOptions<SurveyContext> options) : base(options)
-        {
-
-        }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
 
-            modelBuilder.Entity<Answer>()
-                .HasNoKey();
+            modelBuilder.Entity<Question>()
+            .OwnsMany(q => q.Answers);
         }
     }
 }
