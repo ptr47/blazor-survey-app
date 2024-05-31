@@ -1,5 +1,4 @@
-using System;
-using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 
 namespace WebApp.Models
 {
@@ -11,7 +10,9 @@ namespace WebApp.Models
     }
     public class Question()
     {
+        [Key]
         public int Id { get; set; }
+        [Required(ErrorMessage = "Question title is required.")]
         public string Title { get; set; }
         public QuestionType Type { get; set; }
 

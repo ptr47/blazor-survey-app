@@ -11,23 +11,23 @@
         <div class="top-row px-4">
             <AuthorizeView>
                 <Authorized>
-                    <NavLink class="nav-link px-2" href="Account/Manage">
-                        <span class="bi bi-person-fill-nav-menu" aria-hidden="true"></span> @context.User.Identity?.Name
+                    <NavLink class="px-2" href="Account/Manage">
+                        <span class="m-2" aria-hidden="true">@context.User.Identity?.Name</span>
                     </NavLink>
                     <form action="Account/Logout" method="post">
                         <AntiforgeryToken />
                         <input type="hidden" name="ReturnUrl" value="@currentUrl" />
-                        <button type="submit" class="nav-link">
-                            <span class="bi bi-arrow-bar-left-nav-menu" aria-hidden="true"></span> Logout
+                        <button type="submit" class="btn btn-danger">
+                            <span class="m-2" aria-hidden="true">Logout</span>
                         </button>
                     </form>
                 </Authorized>
                 <NotAuthorized>
-                    <NavLink class="nav-link px-2" href="Account/Register">
-                        <span class="bi bi-person-nav-menu" aria-hidden="true"></span> Register
+                    <NavLink class="px-2" href="Account/Register">
+                        <span class="m-2" aria-hidden="true">Register</span>
                     </NavLink>
-                    <NavLink class="nav-link px-2" href="Account/Login">
-                        <span class="bi bi-person-badge-nav-menu" aria-hidden="true"></span> Login
+                    <NavLink class="px-2" href="Account/Login">
+                        <span class="m-2" aria-hidden="true">Login</span>
                     </NavLink>
                 </NotAuthorized>
             </AuthorizeView>
@@ -40,8 +40,8 @@
 </div>
 
 <div id="blazor-error-ui">
-    An unhandled error has occurred.
-    <a href="" class="reload">Reload</a>
+    Uh-oh, the hamsters running our servers got tired! You might need to 
+    <a href="" class="reload"> reload</a>
     <a class="dismiss">🗙</a>
 </div>
 

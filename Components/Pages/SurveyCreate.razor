@@ -1,9 +1,11 @@
 @page "/survey/create"
 
 @using WebApp.Models
+@using WebApp.Data
 @using System.ComponentModel.DataAnnotations
 @rendermode InteractiveServer
 
+@inject SurveyContext SurveyContext
 @inject NavigationManager NavigationManager
 
 <h1>Create New Survey</h1>
@@ -15,6 +17,7 @@
     <div class="form-group">
         <label for="title">Survey Title</label>
         <InputText id="title" class="form-control" @bind-Value="survey.Title" />
+        <ValidationMessage For="@(() => survey.Title)" />
     </div>
 
     <h3>Questions</h3>
@@ -24,6 +27,7 @@
             <div class="col-md-10 form-group">
                 <label for="question-title">Question Title</label>
                 <InputText id="question-title" class="form-control" @bind-Value="question.Title" />
+                <ValidationMessage For="@(() => question.Title)" />
             </div>
             <div class="col-md-2 form-group">
                 <label for="question-type">Question Type</label>
@@ -75,21 +79,20 @@
 @code {
     [SupplyParameterFromForm]
     private Survey survey { get; set; }
-
+    private int nextQuestionId = 1;
     protected override void OnInitialized()
     {
-        survey = new Survey
-        {
-            Questions = new List<Question>()
-        };
+        survey = new();
         AddQuestion();
     }
 
     private void AddQuestion()
     {
-        survey.Questions.Add(new Question { Answers = new List<Answer>() });
-        survey.Questions.Last().Answers.Add(new());
-        survey.Questions.Last().Answers.Add(new());
+        survey.Questions.Add(new Question { Id = nextQuestionId, Title = "Question", Answers = new List<Answer>() });
+        survey.Questions.Last().Answers.Add(new() { Text = "Answer" });
+        survey.Questions.Last().Answers.Add(new() { Text = "Answer" });
+        nextQuestionId += 1;
+        StateHasChanged();
     }
     private void SelectionChange(Question question)
     {
@@ -100,28 +103,33 @@
         }
         else if (question.Answers.Count == 0)
         {
-            question.Answers.Add(new());
-            question.Answers.Add(new());
+            question.Answers.Add(new() { Text = "Answer" });
+            question.Answers.Add(new() { Text = "Answer" });
         }
     }
     private void RemoveQuestion(Question question)
     {
         survey.Questions.Remove(question);
+        StateHasChanged();
     }
 
     private void RemoveAnswer(Question question, Answer answer)
     {
         question.Answers.Remove(answer);
+        StateHasChanged();
     }
 
     private void AddAnswer(Question question)
     {
-        question.Answers.Add(new());
+        question.Answers.Add(new() { Text = "Answer" });
+        StateHasChanged();
     }
 
     private async Task HandleValidSubmit()
     {
-        // TODO
+        SurveyContext.Surveys.Add(survey);
+        await SurveyContext.SaveChangesAsync();
+        NavigationManager.NavigateTo("/");
         Console.WriteLine("Survey Submitted!");
     }
 }
