@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using Microsoft.EntityFrameworkCore;
 
 namespace WebApp.Models
 {
@@ -19,5 +20,10 @@ namespace WebApp.Models
         public IList<Answer>? Answers { get; set; }
         public Survey Survey { get; set;}
 
+    }
+    [Owned]
+    public class Answer()
+    {
+        public string Text { get; set; }
     }
 }
