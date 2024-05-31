@@ -82,6 +82,16 @@
     [SupplyParameterFromForm]
     private Survey survey { get; set; }
     private int nextQuestionNumber = 1;
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        if (!user.Identity.IsAuthenticated)
+        {
+            Navigation.NavigateTo("Account/Login");
+        }
+    }
     protected override void OnInitialized()
     {
         survey = new();
@@ -137,12 +147,7 @@
             SurveyContext.Surveys.Add(survey);
             await SurveyContext.SaveChangesAsync();
 
-            Navigation.NavigateTo("/survey/success");
+            Navigation.NavigateTo("survey/success");
         }
-        else
-        {
-            // Handle the case where the user is not authenticated
-        }
-    }
     }
 }
