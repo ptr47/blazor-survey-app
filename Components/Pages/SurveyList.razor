@@ -36,13 +36,16 @@ else
             <i class="fas fa-trash"></i>
         </button>
     </div>
-    <button class="btn btn-info mb-2" @onclick:stopPropagation @onclick="() => ShowStatistics(survey)">Statistics</button>
+    <button class="btn btn-info mb-2" @onclick:stopPropagation
+        @onclick="() => ShowStatistics(survey)">Statistics</button>
 </div>
     }
 
 }
 
 @code {
+    [Inject]
+    private ISurveyService _surveyService { get; set; }
     private List<Survey> surveys;
 
     protected override async Task OnInitializedAsync()
@@ -63,10 +66,10 @@ else
         // Implement edit logic here
     }
 
-    private void DeleteSurvey(Survey survey)
+    private async Task DeleteSurvey(Survey survey)
     {
-        Console.WriteLine($"Delete {survey.Title}");
-        // Implement delete logic here
+        await _surveyService.DeleteSurveyAsync(survey);
+        surveys.Remove(survey);
     }
 
     private void ShowStatistics(Survey survey)

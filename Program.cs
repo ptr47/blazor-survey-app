@@ -18,7 +18,7 @@ builder.Services.AddScoped<IdentityRedirectManager>();
 builder.Services.AddScoped<AuthenticationStateProvider, IdentityRevalidatingAuthenticationStateProvider>();
 builder.Services.AddDbContext<SurveyContext>(options =>
     options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
-builder.Services.AddScoped<SurveyService>();
+builder.Services.AddScoped<ISurveyService, SurveyService>();
 
 builder.Services.AddBlazorBootstrap();
 
