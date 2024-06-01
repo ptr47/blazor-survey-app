@@ -30,7 +30,7 @@ else
         </button>
     </div>
     <button class="btn btn-info mb-2" @onclick:stopPropagation
-        @onclick="() => ShowStatistics(survey)">Statistics</button>
+        @onclick="() => EditSurvey(survey)">Edit</button>
 </div>
     }
 
@@ -56,7 +56,7 @@ else
     }
     private void EditSurvey(Survey survey)
     {
-        // Implement edit logic here
+        Navigation.NavigateTo($"Survey/Create/{survey.Id}");
     }
 
     private async Task DeleteSurvey(Survey survey)

@@ -9,6 +9,7 @@ namespace WebApp.Services
     {
         Task AddSurveyAsync(Survey survey);
         Task DeleteSurveyAsync(Survey survey);
+        Task<Survey?> GetSurveyByIdAsync(Guid surveyId);
     }
 
     public class SurveyService(SurveyContext context) : ISurveyService
