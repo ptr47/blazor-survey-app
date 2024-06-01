@@ -1,13 +1,6 @@
 @page "/survey/list"
 
 @rendermode InteractiveServer
-@using WebApp.Models
-@using WebApp.Data
-@using System.ComponentModel.DataAnnotations
-@using Microsoft.EntityFrameworkCore
-@using Microsoft.AspNetCore.Components.Authorization
-@inject AuthenticationStateProvider AuthenticationStateProvider
-@inject SurveyContext SurveyContext
 
 <AuthorizeView>
     <NotAuthorized>
