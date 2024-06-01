@@ -1,6 +1,7 @@
 using System.Threading.Tasks;
 using WebApp.Data;
 using WebApp.Models;
+using Microsoft.EntityFrameworkCore;
 
 namespace WebApp.Services
 {
@@ -10,14 +11,9 @@ namespace WebApp.Services
         Task DeleteSurveyAsync(Survey survey);
     }
 
-    public class SurveyService : ISurveyService
+    public class SurveyService(SurveyContext context) : ISurveyService
     {
-        private readonly SurveyContext _context;
-
-        public SurveyService(SurveyContext context)
-        {
-            _context = context;
-        }
+        private readonly SurveyContext _context = context;
 
         public async Task AddSurveyAsync(Survey survey)
         {
@@ -28,6 +24,10 @@ namespace WebApp.Services
         {
             _context.Surveys.Remove(survey);
             await _context.SaveChangesAsync();
+        }
+        public async Task<Survey?> GetSurveyByIdAsync(Guid surveyId)
+        {
+            return await _context.Surveys.FirstOrDefaultAsync(s => s.Id == surveyId);
         }
     }
 }

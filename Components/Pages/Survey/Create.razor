@@ -1,4 +1,4 @@
-@page "/survey/create"
+@page "/survey/create/{SurveyId?}"
 
 @rendermode InteractiveServer
 @using WebApp.Models
@@ -63,8 +63,8 @@
                         @if (question.Answers.Count > 2)
                         {
                             <div class="input-group-append">
-                                <button type="button" class="btn btn-danger"
-                                @onclick="() => RemoveAnswer(question, answer)"><i class="fas fa-trash"></i></button>
+                                <button type="button" class="btn btn-danger" @onclick="() => RemoveAnswer(question, answer)"><i
+                                        class="fas fa-trash"></i></button>
                             </div>
                         }
                     </div>
@@ -94,12 +94,43 @@
 
     [SupplyParameterFromForm]
     private Survey survey { get; set; }
-    private int nextQuestionNumber = 1;
+    [Parameter]
+    public string SurveyIdString { get; set; }
     protected override void OnInitialized()
     {
-        survey = new();
-        survey.Id = Guid.NewGuid();
-        AddQuestion();
+        if (string.IsNullOrEmpty(SurveyId))
+        {
+            // Create a new survey
+            survey = new Survey
+                {
+                    Id = Guid.NewGuid()
+                };
+            AddQuestion();
+        }
+        else
+        {
+            var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+            string currentUserId = authState.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+
+            Guid.TryParse(SurveyIdString, out Guid SurveyId);
+            survey = await SurveyService.GetSurveyByIdAsync(SurveyId);
+            if (survey == null)
+            {
+                // Create a new survey
+                survey = new Survey
+                    {
+                        Id = Guid.NewGuid()
+                    };
+                AddQuestion();
+            }
+
+            if (survey.UserId != currentUserId)
+            {
+                // Redirect or show a message
+                Navigation.NavigateTo("/not-authorized");
+                return;
+            }
+        }
     }
 
     private void AddQuestion()
@@ -132,7 +163,7 @@
     {
         question.Answers.Remove(answer);
         StateHasChanged();
-    } 
+    }
 
     private void AddAnswer(Question question)
     {
