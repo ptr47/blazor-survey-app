@@ -17,6 +17,7 @@ namespace WebApp.Models
         public string Title { get; set; }
         [Required]
         public QuestionType Type { get; set; }
+        public bool IsRequired { get; set; }
         public Survey Survey { get; set;}
 
         public ICollection<Answer>? Answers { get; set; }

@@ -32,7 +32,7 @@
     @foreach (var question in survey.Questions)
     {
         <div class="row">
-            <div class="col-md-10 form-group">
+            <div class="col-md-9 form-group">
                 <label for="question-title">Question Title</label>
                 <InputText id="question-title" class="form-control" @bind-Value="question.Title" />
                 <ValidationMessage For="@(() => question.Title)" />
@@ -45,6 +45,10 @@
                     <option value="@QuestionType.MultipleChoice">Multiple Choice</option>
                     <option value="@QuestionType.OpenEndedText">Open Ended Text</option>
                 </InputSelect>
+            </div>
+            <div class="col-md-1 form-group">
+                <label for="question-type">Is mandatory?</label>
+                <InputCheckbox id="question-required" class="form-control" @bind-Value="question.IsRequired" />
             </div>
         </div>
 
@@ -128,7 +132,7 @@
     {
         question.Answers.Remove(answer);
         StateHasChanged();
-    }
+    } 
 
     private void AddAnswer(Question question)
     {
