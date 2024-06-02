@@ -8,50 +8,86 @@
 }
 else
 {
-    <EditForm Model="feedback" OnValidSubmit="HandleValidSubmit">
-        <DataAnnotationsValidator />
-        <ValidationSummary />
+    var j = 0;
+    <EditForm Model="feedback" OnValidSubmit="HandleValidSubmit" FormName="answer-survey">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
 
-        <h3>@survey.Title</h3>
+    <h1>@survey.Title</h1>
 
         @foreach (var question in survey.Questions)
         {
-            <div class="mb-3">
-                <label>@question.Title</label>
-                @if(question.Type == QuestionType.SingleChoice)
+            j++;
+            var answer1 = feedback.Answers.FirstOrDefault(a => a.QuestionId == question.Id);
+            <div class="mb-3 card p-4">
+                <h4 class="mb-3">@(j). @question.Title</h4>
+                @if (question.Type == QuestionType.SingleChoice)
                 {
-                    foreach (var answer in question.Answers)
+                    var i = 0;
+                    @foreach (var answer in question.Answers)
                     {
+                        i++;
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="radio" name="@($"answer_{question.Id}")"
+                                id="@($"answer_{question.Id}_{i}")" />
+                            <label class="form-check-label" for="@($"answer_{question.Id}_{i}")">
+                                @answer.Text
+                            </label>
+                        </div>
 
                     }
                 }
                 else
                 {
-                    <InputTextArea @bind-Value="feedback.Answers.First(a => a.QuestionId == question.Id).Answer" class="form-control" />
+                    <div class="form-group">
+                        <InputTextArea @bind-Value="@answer1.Answer" class="form-control" rows="3" />
+
+                    </div>
                 }
             </div>
         }
-
-        <button type="submit" class="btn btn-primary">Submit</button>
-    </EditForm>
+        @if (!isOwner)
+        {
+            <button type="submit" class="btn btn-primary">Submit</button>
+        }
+        </EditForm>
 }
 
 @code {
     [Parameter]
     public Guid surveyId { get; set; }
+    public bool isOwner = false;
+    private string feedbackText { get; set; }
     public Survey survey;
-    public Feedback feedback;   
+    public Feedback feedback;
 
     protected override async Task OnInitializedAsync()
     {
         survey = await SurveyService.GetSurveyByIdAsync(surveyId);
 
-        feedback = new Feedback
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        string currentUserId = authState.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        if (survey.UserId == currentUserId)
         {
-            SurveyId = survey.Id
-        };
-    }
+            isOwner = true;
+        }
+        feedback = new Feedback
+            {
+                SurveyId = survey.Id
+            };
+        for (int i = 0; i < survey.Questions.Count; i++)
+        {
+            Guid questionId = survey.Questions[i].Id;
 
+            var answer = new FeedbackAnswer
+                {
+                    QuestionId = questionId
+                };
+
+            feedback.Answers.Add(answer);
+        }
+
+    }
     private async Task HandleValidSubmit()
     {
         await SurveyService.SubmitFeedbackAsync(feedback);

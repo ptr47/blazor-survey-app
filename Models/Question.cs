@@ -18,10 +18,11 @@ namespace WebApp.Models
         [Required]
         public QuestionType Type { get; set; }
         public bool IsRequired { get; set; }
+        public int Position { get; set; }
         public Guid SurveyId { get; set; }
         public Survey Survey { get; set;}
 
-        public ICollection<Answer>? Answers { get; set; }
+        public List<Answer>? Answers { get; set; }
 
     }
     public class Answer()

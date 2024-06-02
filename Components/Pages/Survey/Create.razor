@@ -2,13 +2,13 @@
 
 @rendermode InteractiveServer
 
-@if (string.IsNullOrEmpty(SurveyIdString))
+@if (EditMode)
 {
-    <h1>Create New Survey</h1>
+    <h1>Edit Survey</h1>
 }
 else
 {
-    <h1>Edit Survey</h1>
+    <h1>Create New Survey</h1>
 }
 
 <AuthorizeView>
@@ -83,13 +83,13 @@ else
     <div class="text-center">
         <button type="button" class="btn btn-secondary" @onclick="AddQuestion">Add Question</button>
         <br /><br />
-        @if (string.IsNullOrEmpty(SurveyIdString))
+        @if (EditMode)
         {
-            <button type="submit" class="btn btn-primary">Create Survey</button>
+            <button type="submit" class="btn btn-primary">Edit Survey</button>
         }
         else
         {
-            <button type="submit" class="btn btn-primary">Edit Survey</button>
+            <button type="submit" class="btn btn-primary">Create Survey</button>
         }
     </div>
 </EditForm>
@@ -99,10 +99,13 @@ else
     private Survey survey { get; set; }
     [Parameter]
     public string SurveyIdString { get; set; }
+    private int QuestionPosition = 1;
+    public bool EditMode { get; set; }
     protected override async Task OnInitializedAsync()
     {
         if (string.IsNullOrEmpty(SurveyIdString))
         {
+            EditMode = false;
             // Create a new survey
             survey = new Survey
                 {
@@ -112,6 +115,9 @@ else
         }
         else
         {
+            Navigation.NavigateTo("/survey/create");
+            return;
+            @* EditMode = true;
             var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
             string currentUserId = authState.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
 
@@ -131,15 +137,16 @@ else
                 // Redirect or show a message
                 Navigation.NavigateTo("/Survey/Not-Authorized");
                 return;
-            }
+            } *@
         }
     }
 
     private void AddQuestion()
     {
-        survey.Questions.Add(new Question { Id = Guid.NewGuid(), Title = "Question", Answers = new List<Answer>() });
+        survey.Questions.Add(new Question { Id = Guid.NewGuid(), Position = QuestionPosition, Title = "Question", Answers = new List<Answer>() });
         survey.Questions.Last().Answers.Add(new() { Text = "Answer" });
         survey.Questions.Last().Answers.Add(new() { Text = "Answer" });
+        QuestionPosition++;
         StateHasChanged();
     }
     private void SelectionChange(Question question)
@@ -178,12 +185,19 @@ else
         var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
         var user = authState.User;
 
-        if (user.Identity.IsAuthenticated)
+        if (!user.Identity.IsAuthenticated)
         {
-            survey.UserId = user.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
-            await SurveyService.AddSurveyAsync(survey);
-
-            Navigation.NavigateTo("survey/success");
+            return;
         }
+        survey.UserId = user.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        if (EditMode)
+        {
+            await SurveyService.UpdateSurveyAsync(survey);
+        }
+        else
+        {
+            await SurveyService.AddSurveyAsync(survey);
+        }
+        Navigation.NavigateTo("survey/success");
     }
 }

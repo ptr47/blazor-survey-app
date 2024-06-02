@@ -9,7 +9,7 @@ namespace WebApp.Models
         public Guid? UserId { get; set; }
         public Guid SurveyId { get; set; }
         public Survey Survey { get; set; }
-        public ICollection<FeedbackAnswer> Answers { get; set; } = new List<FeedbackAnswer>();
+        public List<FeedbackAnswer> Answers { get; set; } = new List<FeedbackAnswer>();
     }
     public class FeedbackAnswer()
     {

@@ -28,7 +28,7 @@ namespace WebApp.Data
             modelBuilder.Entity<Feedback>()
             .OwnsMany(q => q.Answers, a =>
             {
-                a.WithOwner().HasForeignKey("QuestionId");
+                a.WithOwner();
                 a.Property<int>("Id");
                 a.HasKey("Id");
             });

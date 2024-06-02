@@ -10,6 +10,7 @@ namespace WebApp.Services
         Task AddSurveyAsync(Survey survey);
         Task DeleteSurveyAsync(Survey survey);
         Task<Survey?> GetSurveyByIdAsync(Guid surveyId);
+        Task<bool> UpdateSurveyAsync(Survey updatedSurvey);
         Task SubmitFeedbackAsync(Feedback feedback);
     }
 
@@ -29,33 +30,71 @@ namespace WebApp.Services
         }
         public async Task<Survey?> GetSurveyByIdAsync(Guid surveyId)
         {
-            return await _context.Surveys.FirstOrDefaultAsync(s => s.Id == surveyId);
+            return await _context.Surveys
+            .Include(s => s.Questions.OrderBy(q => q.Position))
+                .ThenInclude(q => q.Answers)
+            .FirstOrDefaultAsync(s => s.Id == surveyId);
+
         }
-        public async Task<Survey> CreateSurveyFromExistingAsync(Guid existingSurveyId)
+        public async Task<bool> UpdateSurveyAsync(Survey updatedSurvey)
         {
-            var existingSurvey = await GetSurveyByIdAsync(existingSurveyId) ?? throw new InvalidOperationException("Survey not found.");
+            var survey = await _context.Surveys
+                .Include(s => s.Questions)
+                    .ThenInclude(q => q.Answers)
+                .FirstOrDefaultAsync(s => s.Id == updatedSurvey.Id);
 
-            var newSurvey = new Survey
+            if (survey == null)
             {
-                Id = Guid.NewGuid(),
-                UserId = existingSurvey.UserId,
-                Title = existingSurvey.Title,
-            };
-            newSurvey.Questions = existingSurvey.Questions.Select(q => new Question
+                return false; // Survey not found
+            }
+
+            // Update survey properties
+            survey.Title = updatedSurvey.Title;
+
+            // Update questions and answers
+            foreach (var updatedQuestion in updatedSurvey.Questions)
             {
-                Id = Guid.NewGuid(),
-                SurveyId = newSurvey.Id,
-                Title = q.Title,
-                IsRequired = q.IsRequired,
-                Type = q.Type,
-                Answers = q.Answers
-            }).ToList();
+                var question = survey.Questions.FirstOrDefault(q => q.Id == updatedQuestion.Id);
 
-            _context.Surveys.Add(newSurvey);
-            await _context.SaveChangesAsync();
+                if (question != null)
+                {
+                    // Update existing question
+                    question.Title = updatedQuestion.Title;
+                    question.IsRequired = updatedQuestion.IsRequired;
+                    question.Type = updatedQuestion.Type;
 
-            return newSurvey;
+                    // Add new answers
+                    question.Answers.Clear();
+                    if (question.Type != QuestionType.OpenEndedText)
+                    {
+                        foreach (var updatedAnswer in updatedQuestion.Answers)
+                        {
+                            question.Answers.Add(updatedAnswer);
+                        }
+                    }
+                }
+                else
+                {
+                    // Add new question
+                    survey.Questions.Add(updatedQuestion);
+                }
+            }
+
+            // Remove deleted questions
+            survey.Questions.RemoveAll(q => !updatedSurvey.Questions.Any(uq => uq.Id == q.Id));
+
+            try
+            {
+                await _context.SaveChangesAsync();
+                return true;
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                // Handle concurrency issues
+                return false;
+            }
         }
+
         public async Task SubmitFeedbackAsync(Feedback feedback)
         {
             _context.Feedbacks.Add(feedback);
