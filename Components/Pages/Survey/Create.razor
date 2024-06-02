@@ -95,9 +95,6 @@ else
 </EditForm>
 
 @code {
-    [Inject]
-    private ISurveyService _surveyService { get; set; }
-
     [SupplyParameterFromForm]
     private Survey survey { get; set; }
     [Parameter]
@@ -119,7 +116,7 @@ else
             string currentUserId = authState.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
 
             Guid.TryParse(SurveyIdString, out Guid SurveyId);
-            survey = await _surveyService.GetSurveyByIdAsync(SurveyId);
+            survey = await SurveyService.GetSurveyByIdAsync(SurveyId);
             if (survey == null)
             {
                 // Create a new survey
@@ -184,7 +181,7 @@ else
         if (user.Identity.IsAuthenticated)
         {
             survey.UserId = user.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
-            await _surveyService.AddSurveyAsync(survey);
+            await SurveyService.AddSurveyAsync(survey);
 
             Navigation.NavigateTo("survey/success");
         }

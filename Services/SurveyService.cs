@@ -10,6 +10,7 @@ namespace WebApp.Services
         Task AddSurveyAsync(Survey survey);
         Task DeleteSurveyAsync(Survey survey);
         Task<Survey?> GetSurveyByIdAsync(Guid surveyId);
+        Task SubmitFeedbackAsync(Feedback feedback);
     }
 
     public class SurveyService(SurveyContext context) : ISurveyService
@@ -30,5 +31,36 @@ namespace WebApp.Services
         {
             return await _context.Surveys.FirstOrDefaultAsync(s => s.Id == surveyId);
         }
+        public async Task<Survey> CreateSurveyFromExistingAsync(Guid existingSurveyId)
+        {
+            var existingSurvey = await GetSurveyByIdAsync(existingSurveyId) ?? throw new InvalidOperationException("Survey not found.");
+
+            var newSurvey = new Survey
+            {
+                Id = Guid.NewGuid(),
+                UserId = existingSurvey.UserId,
+                Title = existingSurvey.Title,
+            };
+            newSurvey.Questions = existingSurvey.Questions.Select(q => new Question
+            {
+                Id = Guid.NewGuid(),
+                SurveyId = newSurvey.Id,
+                Title = q.Title,
+                IsRequired = q.IsRequired,
+                Type = q.Type,
+                Answers = q.Answers
+            }).ToList();
+
+            _context.Surveys.Add(newSurvey);
+            await _context.SaveChangesAsync();
+
+            return newSurvey;
+        }
+        public async Task SubmitFeedbackAsync(Feedback feedback)
+        {
+            _context.Feedbacks.Add(feedback);
+            await _context.SaveChangesAsync();
+        }
     }
+
 }

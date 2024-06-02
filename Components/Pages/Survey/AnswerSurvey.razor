@@ -1,0 +1,60 @@
+@page "/survey/{surveyId:guid}"
+
+<PageTitle>Answer Survey</PageTitle>
+
+@if (survey == null)
+{
+    <p>Loading...</p>
+}
+else
+{
+    <EditForm Model="feedback" OnValidSubmit="HandleValidSubmit">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+
+        <h3>@survey.Title</h3>
+
+        @foreach (var question in survey.Questions)
+        {
+            <div class="mb-3">
+                <label>@question.Title</label>
+                @if(question.Type == QuestionType.SingleChoice)
+                {
+                    foreach (var answer in question.Answers)
+                    {
+
+                    }
+                }
+                else
+                {
+                    <InputTextArea @bind-Value="feedback.Answers.First(a => a.QuestionId == question.Id).Answer" class="form-control" />
+                }
+            </div>
+        }
+
+        <button type="submit" class="btn btn-primary">Submit</button>
+    </EditForm>
+}
+
+@code {
+    [Parameter]
+    public Guid surveyId { get; set; }
+    public Survey survey;
+    public Feedback feedback;   
+
+    protected override async Task OnInitializedAsync()
+    {
+        survey = await SurveyService.GetSurveyByIdAsync(surveyId);
+
+        feedback = new Feedback
+        {
+            SurveyId = survey.Id
+        };
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        await SurveyService.SubmitFeedbackAsync(feedback);
+        Navigation.NavigateTo("/survey/thankyou");
+    }
+}

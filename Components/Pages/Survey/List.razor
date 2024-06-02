@@ -37,8 +37,6 @@ else
 }
 
 @code {
-    [Inject]
-    private ISurveyService _surveyService { get; set; }
     private List<Survey> surveys;
 
     protected override async Task OnInitializedAsync()
@@ -61,7 +59,7 @@ else
 
     private async Task DeleteSurvey(Survey survey)
     {
-        await _surveyService.DeleteSurveyAsync(survey);
+        await SurveyService.DeleteSurveyAsync(survey);
         surveys.Remove(survey);
     }
 

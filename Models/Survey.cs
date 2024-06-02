@@ -11,7 +11,7 @@ namespace WebApp.Models
         [StringLength(99)]
         public string Title { get; set; }
         [Required(ErrorMessage ="Survey needs questions")]
-        public List<Question> Questions { get; set; } = new();
+        public ICollection<Question> Questions { get; set; } = new List<Question>();
 
     }
 }
