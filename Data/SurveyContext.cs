@@ -15,23 +15,6 @@ namespace WebApp.Data
             modelBuilder.Entity<Survey>()
                 .HasIndex(s => s.UserId);
 
-            modelBuilder.Entity<Question>()
-            .OwnsMany(q => q.Answers, a =>
-            {
-                a.WithOwner().HasForeignKey("QuestionId");
-                a.Property<int>("Id");
-                a.HasKey("Id");
-            });
-            
-            modelBuilder.Entity<Feedback>()
-                .HasIndex(f => f.UserId);
-            modelBuilder.Entity<Feedback>()
-            .OwnsMany(q => q.Answers, a =>
-            {
-                a.WithOwner();
-                a.Property<int>("Id");
-                a.HasKey("Id");
-            });
         }
     }
 }

@@ -192,7 +192,7 @@ else
         survey.UserId = user.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
         if (EditMode)
         {
-            await SurveyService.UpdateSurveyAsync(survey);
+            //await SurveyService.UpdateSurveyAsync(survey);
         }
         else
         {

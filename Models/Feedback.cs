@@ -13,8 +13,11 @@ namespace WebApp.Models
     }
     public class FeedbackAnswer()
     {
+        [Key]
+        public Guid Id { get; set; } = Guid.NewGuid();
         public Guid QuestionId { get; set; }
+        public Guid FeedbackId { get; set; }
         public Question Question { get; set; }
-        public string Answer { get; set; }
+        public string? Answer { get; set; }
     }
 }

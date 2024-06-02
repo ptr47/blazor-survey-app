@@ -1,96 +1,165 @@
-@page "/survey/{surveyId:guid}"
-
+@page "/survey/{surveyId:guid}/{currentQuestionIndex:int?}"
+@rendermode InteractiveServer
 <PageTitle>Answer Survey</PageTitle>
 
 @if (survey == null)
 {
     <p>Loading...</p>
 }
+else if (isOwner == true)
+{
+    <p>you can't fill your own surveys</p>
+}
 else
 {
-    var j = 0;
-    <EditForm Model="feedback" OnValidSubmit="HandleValidSubmit" FormName="answer-survey">
+    var question = survey.Questions[currentQuestionIndex];
+
+    <EditForm Model="feedbackAnswer" OnValidSubmit="SaveFeedback" FormName="answer-question">
     <DataAnnotationsValidator />
     <ValidationSummary />
 
-    <h1>@survey.Title</h1>
-
-        @foreach (var question in survey.Questions)
-        {
-            j++;
-            var answer1 = feedback.Answers.FirstOrDefault(a => a.QuestionId == question.Id);
-            <div class="mb-3 card p-4">
-                <h4 class="mb-3">@(j). @question.Title</h4>
-                @if (question.Type == QuestionType.SingleChoice)
+    <div class="mb-3 card p-4">
+        <h4 class="mb-3">@(currentQuestionIndex + 1). @question.Title</h4>
+            @if (question.Type == QuestionType.SingleChoice)
+            {
+                foreach (var answer in survey.Questions[currentQuestionIndex].Answers)
                 {
-                    var i = 0;
-                    @foreach (var answer in question.Answers)
-                    {
-                        i++;
-                        <div class="form-check mb-2">
-                            <input class="form-check-input" type="radio" name="@($"answer_{question.Id}")"
-                                id="@($"answer_{question.Id}_{i}")" />
-                            <label class="form-check-label" for="@($"answer_{question.Id}_{i}")">
-                                @answer.Text
-                            </label>
-                        </div>
-
-                    }
+                    <InputRadioGroup class="form-check mb-2" name="question" @bind-Value="feedbackAnswer.Answer">
+                        <InputRadio class="form-check-input" name="question" id="@($"answer_{answer.Id}")"
+                            Value="@answer.Id.ToString()" />
+                        <label class="form-check-label" for="@($"answer_{answer.Id}")">@answer.Text</label>
+                    </InputRadioGroup>
                 }
-                else
+            }
+            else if (question.Type == QuestionType.MultipleChoice)
+            {
+                var i = 0;
+                foreach (var answer in survey.Questions[currentQuestionIndex].Answers)
                 {
-                    <div class="form-group">
-                        <InputTextArea @bind-Value="@answer1.Answer" class="form-control" rows="3" />
-
+                    <div class="form-check mb-2">
+                        <InputCheckbox id="@($"answer_{answer.Id}")" name="@($"answer_{answer.Id}")" Value="@(selectedAnswers[i])"
+                            ValueExpression="@(() => selectedAnswers[i])" />
+                        <label class="form-check-label" for="@($"answer_{answer.Id}")">@answer.Text</label>
                     </div>
+                    i++;
                 }
-            </div>
-        }
-        @if (!isOwner)
+            }
+            else
+            {
+                <div class="form-group">
+                    <InputTextArea @bind-Value="feedbackAnswer.Answer" class="form-control" rows="3" />
+                </div>
+            }
+        </div>
+
+
+        <input type="hidden" id="clickedButton" name="clickedButton" />
+        @if (currentQuestionIndex == 0 && currentQuestionIndex != survey.Questions.Count - 1)
         {
-            <button type="submit" class="btn btn-primary">Submit</button>
+            <button class="btn btn-primary" style="cursor: pointer;" @onclick=NextQuestion>Next Question</button>
         }
-        </EditForm>
+        else if (currentQuestionIndex < survey.Questions.Count -1)
+        {
+            <button class="btn btn-primary" style="cursor: pointer;" @onclick=PreviousQuestion>Previous Question</button>
+            <button class="btn btn-primary" style="cursor: pointer;" @onclick=NextQuestion>Next Question</button>
+        }
+        else
+        {
+            <button class="btn btn-primary" style="cursor: pointer;" @onclick=PreviousQuestion>Previous Question</button>
+            <button name="submitButton" value="submit" class="btn btn-primary">Submit Answers</button>
+        }
+
+    </EditForm>
 }
+
 
 @code {
     [Parameter]
     public Guid surveyId { get; set; }
+    [Parameter]
+    public int currentQuestionIndex { get; set; }
     public bool isOwner = false;
-    private string feedbackText { get; set; }
+    public EditContext editContext;
     public Survey survey;
-    public Feedback feedback;
+    private string currentUserId;
+    public Feedback feedback = new();
+    public FeedbackAnswer feedbackAnswer = new();
+    public List<bool> selectedAnswers = new();
 
     protected override async Task OnInitializedAsync()
     {
         survey = await SurveyService.GetSurveyByIdAsync(surveyId);
-
         var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
-        string currentUserId = authState.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        currentUserId = authState.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        if (survey == null)
+        {
+            Navigation.NavigateTo("/404");
+            return;
+        }
+        editContext = new EditContext(feedbackAnswer);
+        if (currentQuestionIndex > survey.Questions.Count - 1)
+        {
+            currentQuestionIndex = 0;
+        }
         if (survey.UserId == currentUserId)
         {
             isOwner = true;
         }
-        feedback = new Feedback
-            {
-                SurveyId = survey.Id
-            };
-        for (int i = 0; i < survey.Questions.Count; i++)
-        {
-            Guid questionId = survey.Questions[i].Id;
-
-            var answer = new FeedbackAnswer
-                {
-                    QuestionId = questionId
-                };
-
-            feedback.Answers.Add(answer);
-        }
-
+        feedbackAnswer = new() { QuestionId = survey.Questions[currentQuestionIndex].Id };
+        PopulateSelectedAnswers();
+        Console.WriteLine("Initialization complete");
     }
-    private async Task HandleValidSubmit()
+    private void PopulateSelectedAnswers()
     {
-        await SurveyService.SubmitFeedbackAsync(feedback);
-        Navigation.NavigateTo("/survey/thankyou");
+        var question = survey.Questions[currentQuestionIndex];
+        if (question.Type == QuestionType.MultipleChoice)
+        {
+            selectedAnswers.Clear();
+            foreach (var answer in question.Answers)
+            {
+                selectedAnswers.Add(false);
+            }
+        }
+    }
+    private void PreviousQuestion()
+    {
+        currentQuestionIndex -= 1;
+        feedbackAnswer = feedback.Answers[currentQuestionIndex];
+        PopulateSelectedAnswers();
+        Console.WriteLine(currentQuestionIndex);
+
+        var nextUrl = $"survey/{surveyId.ToString()}/{currentQuestionIndex.ToString()}";
+        Navigation.NavigateTo(nextUrl);
+    }
+    private void NextQuestion()
+    {
+        feedback.Answers.Add(feedbackAnswer);
+        currentQuestionIndex += 1;
+        if (feedback.Answers.Any(fa => fa.QuestionId == survey.Questions[currentQuestionIndex].Id))
+        {
+            feedbackAnswer = feedback.Answers[currentQuestionIndex];
+        }
+        else
+        {
+            feedbackAnswer = new() { QuestionId = survey.Questions[currentQuestionIndex].Id };
+        }
+        PopulateSelectedAnswers();
+        Console.WriteLine(currentQuestionIndex);
+
+        var nextUrl = $"survey/{surveyId.ToString()}/{currentQuestionIndex.ToString()}";
+        Navigation.NavigateTo(nextUrl);
+    }
+    private async Task SaveFeedback()
+    {
+        if (currentUserId != null)
+        {
+            feedback.UserId = Guid.Parse(currentUserId);
+        };
+        foreach (var a in feedback.Answers)
+        {
+            Console.WriteLine(a.Answer);
+        }
+        //await SurveyService.SubmitFeedbackAsync(feedback);
+        //Navigation.NavigateTo("/survey/thankyou");
     }
 }
