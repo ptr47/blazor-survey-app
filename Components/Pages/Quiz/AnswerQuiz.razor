@@ -34,11 +34,7 @@ else
                         <div class="form-check mb-2">
                             <input type="radio" class="form-check-input" name="@($"answer_{question.Id}")"
                                 id="@($"answer_{question.Id}_{answer.Id}")" value="@(answer.Id)" />
-                            <label class="form-check-label" for="@($"answer_{question.Id}_{answer.Id}")">@answer.Text</label>
-                            @if (survey.IsQuiz && (answer.IsCorrect == true))
-                            {
-                                <span class="ml-2 text-success">&#10004;</span>
-                            }
+                            <label class="form-check-label" for="@($"answer_{question.Id}_{answer.Id}")">@answer.Text</label> 
                         </div>
                     }
                 }
@@ -50,11 +46,7 @@ else
                             <input type="checkbox" class="form-check-input" id="@($"answer_{question.Id}_{answer.Id}")"
                                 value="@(answer.Id)" />
                             <label class="form-check-label" for="@($"answer_{question.Id}_{answer.Id}")">@answer.Text</label>
-                            @if (survey.IsQuiz && (answer.IsCorrect == true))
-                            {
-                                <span class="ml-2 text-success">&#10004;</span>
-                            }
-                        </div>
+                            </div>
                     }
                 }
                 </div>
