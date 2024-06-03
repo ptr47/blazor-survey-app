@@ -1,4 +1,5 @@
 @page "/quiz/{surveyId:guid}"
+@rendermode InteractiveServer
 
 <PageTitle>Answer Quiz</PageTitle>
 
@@ -9,7 +10,7 @@
 else
 {
     var questionNumber = 0;
-    <EditForm Model="feedbackForm" OnValidSubmit="SaveFeedback" FormName="answer-survey">
+    <EditForm Model="model" OnValidSubmit="SaveScore" FormName="answer-survey">
     <DataAnnotationsValidator />
     <ValidationSummary />
 
@@ -33,7 +34,7 @@ else
                     {
                         <div class="form-check mb-2">
                             <input type="radio" class="form-check-input" name="@($"answer_{question.Id}")"
-                                id="@($"answer_{question.Id}_{answer.Id}")" value="@(answer.Id)" />
+                                id="@($"answer_{question.Id}_{answer.Id}")" @onchange="@((e) => OnRadioChanged(question.Id, answer.Id))" />
                             <label class="form-check-label" for="@($"answer_{question.Id}_{answer.Id}")">@answer.Text</label> 
                         </div>
                     }
@@ -44,7 +45,7 @@ else
                     {
                         <div class="form-check mb-2">
                             <input type="checkbox" class="form-check-input" id="@($"answer_{question.Id}_{answer.Id}")"
-                                value="@(answer.Id)" />
+                                @onchange="@((e) => OnCheckboxChanged(question.Id, answer.Id, e))"/>
                             <label class="form-check-label" for="@($"answer_{question.Id}_{answer.Id}")">@answer.Text</label>
                             </div>
                     }
@@ -54,10 +55,8 @@ else
             questionNumber++;
         }
 
-        @if (!isOwner)
-        {
-            <button type="submit" class="btn btn-primary">Submit</button>
-        }
+        <button type="submit" class="btn btn-primary">Submit</button>
+        
         </EditForm>
 }
 
@@ -65,16 +64,36 @@ else
     [Parameter]
     public Guid surveyId { get; set; }
     public bool isOwner = false;
-
+    public int score;
     public Survey survey;
     private string currentUserId;
-    private List<string> inputs { get; set; } = new();
-    public FeedbackAnswer feedback = new();
-    public FeedbackForm feedbackForm = new();
-
-    public class FeedbackForm()
+    private Dictionary<Guid, List<int>> selectedAnswers = new();
+    public QuizModel model { get; set; } = new();
+    public class QuizModel()
     {
 
+    }
+    private void OnRadioChanged(Guid questionId, int answerId)
+    {
+        selectedAnswers[questionId] = new List<int> { answerId };
+    }
+
+    private void OnCheckboxChanged(Guid questionId, int answerId, ChangeEventArgs e)
+    {
+        bool isChecked = (bool)e.Value;
+        if (!selectedAnswers.ContainsKey(questionId))
+        {
+            selectedAnswers[questionId] = new List<int>();
+        }
+        if (isChecked)
+        {
+            selectedAnswers[questionId].Add(answerId);
+        }
+        else
+        {
+            selectedAnswers[questionId].Remove(answerId);
+        }
+        Console.WriteLine("check");
     }
     protected override async Task OnInitializedAsync()
     {
@@ -92,13 +111,33 @@ else
             isOwner = true;
         }
     }
-    private async Task SaveFeedback()
+    private async Task SaveScore()
     {
-        if (currentUserId != null)
+        score = 0;
+        foreach (var question in survey.Questions)
         {
-            feedback.UserId = Guid.Parse(currentUserId);
-        };
-        //await SurveyService.SubmitFeedbackAsync(feedback);
-        //Navigation.NavigateTo("/survey/thankyou");
+            if (question.Type == QuestionType.SingleChoice || question.Type == QuestionType.MultipleChoice)
+            {
+                if (selectedAnswers.ContainsKey(question.Id))
+                {
+                    var correctAnswers = question.Answers.Where(a => a.IsCorrect).Select(a => a.Id).ToList();
+                    if (question.Type == QuestionType.SingleChoice)
+                    {
+                        if (selectedAnswers[question.Id].SequenceEqual(correctAnswers))
+                        {
+                            score++;
+                        }
+                    }
+                    else if (question.Type == QuestionType.MultipleChoice)
+                    {
+                        if (selectedAnswers[question.Id].All(correctAnswers.Contains) && selectedAnswers[question.Id].Count == correctAnswers.Count)
+                        {
+                            score++;
+                        }
+                    }
+                }
+            }
+        }
+        Navigation.NavigateTo($"/quiz/score/{score}");
     }
 }

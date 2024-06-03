@@ -63,7 +63,10 @@
 }
 
 <button class="btn btn-primary" @onclick="ExportToPdf">Export to PDF</button>
-
+@if(survey.IsQuiz == true)
+{
+    <button class="btn btn-primary" @onclick="NavToQuiz">Complete</button>
+}
 @code {
     [Parameter]
     public Guid surveyId { get; set; }
@@ -98,5 +101,9 @@
         }).ToList();
 
         await JS.InvokeVoidAsync("generatePdf", survey.Title, questions);
+    }
+    private void NavToQuiz()
+    {
+        Navigation.NavigateTo($"/quiz/{survey.Id}");
     }
 }
