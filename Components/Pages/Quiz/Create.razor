@@ -31,7 +31,7 @@ else
     @foreach (var question in survey.Questions)
     {
         <div class="row">
-            <div class="col-md-9 form-group">
+            <div class="col-md-10 form-group">
                 <label for="question-title">Question Title</label>
                 <InputText id="question-title" class="form-control" @bind-Value="question.Title" />
                 <ValidationMessage For="@(() => question.Title)" />
@@ -44,10 +44,10 @@ else
                     <option value="@QuestionType.MultipleChoice">Multiple Choice</option>
                 </InputSelect>
             </div>
-            <div class="col-md-1 form-group text-center">
+            @* <div class="col-md-1 form-group text-center">
                 <label for="question-type">Is mandatory?</label>
                 <InputCheckbox id="question-required" @bind-Value="question.IsRequired" />
-            </div>
+            </div> *@
         </div>
 
         @if (question.Type == QuestionType.SingleChoice)
@@ -118,11 +118,11 @@ else
         <br /><br />
         @if (EditMode)
         {
-            <button type="submit" class="btn btn-primary">Edit Survey</button>
+            <button type="submit" class="btn btn-primary">Edit Quiz</button>
         }
         else
         {
-            <button type="submit" class="btn btn-primary">Create Survey</button>
+            <button type="submit" class="btn btn-primary">Create Quiz</button>
         }
     </div>
 </EditForm>
@@ -246,6 +246,6 @@ return;
             survey.IsQuiz = true;
             await SurveyService.AddSurveyAsync(survey);
         }
-        Navigation.NavigateTo("survey/success");
+        Navigation.NavigateTo("success");
     }
 }
