@@ -1,3 +1,6 @@
 # Blazor Survey App
 
 A Blazor Server app for surveys, using Entity Framework Core and SQLite for database.
+also has quizes...
+primarily quizes...
+It should have been a Quiz App
