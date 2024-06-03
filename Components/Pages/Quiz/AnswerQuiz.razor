@@ -1,0 +1,112 @@
+@page "/quiz/{surveyId:guid}"
+
+<PageTitle>Answer Quiz</PageTitle>
+
+@if (survey == null)
+{
+    <p>Loading...</p>
+}
+else
+{
+    var questionNumber = 0;
+    <EditForm Model="feedbackForm" OnValidSubmit="SaveFeedback" FormName="answer-survey">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <h1>@survey.Title</h1>
+
+    @{
+            var questionNumber = 1;
+        }
+
+        @foreach (var question in survey.Questions)
+        {
+            <div class="mb-3 card p-4">
+                <h4 class="mb-3">@if (question.IsRequired)
+                    {
+                        <span>*</span>
+                    } @(questionNumber). @question.Title
+                </h4>
+                @if (question.Type == QuestionType.SingleChoice)
+                {
+                    foreach (var answer in question.Answers)
+                    {
+                        <div class="form-check mb-2">
+                            <input type="radio" class="form-check-input" name="@($"answer_{question.Id}")"
+                                id="@($"answer_{question.Id}_{answer.Id}")" value="@(answer.Id)" />
+                            <label class="form-check-label" for="@($"answer_{question.Id}_{answer.Id}")">@answer.Text</label>
+                            @if (survey.IsQuiz && (answer.IsCorrect == true))
+                            {
+                                <span class="ml-2 text-success">&#10004;</span>
+                            }
+                        </div>
+                    }
+                }
+                else if (question.Type == QuestionType.MultipleChoice)
+                {
+                    foreach (var answer in question.Answers)
+                    {
+                        <div class="form-check mb-2">
+                            <input type="checkbox" class="form-check-input" id="@($"answer_{question.Id}_{answer.Id}")"
+                                value="@(answer.Id)" />
+                            <label class="form-check-label" for="@($"answer_{question.Id}_{answer.Id}")">@answer.Text</label>
+                            @if (survey.IsQuiz && (answer.IsCorrect == true))
+                            {
+                                <span class="ml-2 text-success">&#10004;</span>
+                            }
+                        </div>
+                    }
+                }
+                </div>
+
+            questionNumber++;
+        }
+
+        @if (!isOwner)
+        {
+            <button type="submit" class="btn btn-primary">Submit</button>
+        }
+        </EditForm>
+}
+
+@code {
+    [Parameter]
+    public Guid surveyId { get; set; }
+    public bool isOwner = false;
+
+    public Survey survey;
+    private string currentUserId;
+    private List<string> inputs { get; set; } = new();
+    public FeedbackAnswer feedback = new();
+    public FeedbackForm feedbackForm = new();
+
+    public class FeedbackForm()
+    {
+
+    }
+    protected override async Task OnInitializedAsync()
+    {
+        survey = await SurveyService.GetSurveyByIdAsync(surveyId);
+
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        string currentUserId = authState.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        if (survey == null)
+        {
+            Navigation.NavigateTo("/404");
+            return;
+        }
+        if (survey.UserId == currentUserId)
+        {
+            isOwner = true;
+        }
+    }
+    private async Task SaveFeedback()
+    {
+        if (currentUserId != null)
+        {
+            feedback.UserId = Guid.Parse(currentUserId);
+        };
+        //await SurveyService.SubmitFeedbackAsync(feedback);
+        //Navigation.NavigateTo("/survey/thankyou");
+    }
+}

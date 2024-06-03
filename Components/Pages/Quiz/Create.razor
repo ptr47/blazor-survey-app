@@ -1,4 +1,4 @@
-@page "/survey/create/{SurveyIdString?}"
+@page "/quiz/create/{SurveyIdString?}"
 
 @rendermode InteractiveServer
 
@@ -42,7 +42,6 @@ else
                 @bind-Value:after="() => SelectionChange(question)">
                     <option value="@QuestionType.SingleChoice">Single Choice</option>
                     <option value="@QuestionType.MultipleChoice">Multiple Choice</option>
-                    <option value="@QuestionType.OpenEndedText">Open Ended Text</option>
                 </InputSelect>
             </div>
             <div class="col-md-1 form-group text-center">
@@ -51,19 +50,26 @@ else
             </div>
         </div>
 
-        @if (question.Type == QuestionType.SingleChoice || question.Type == QuestionType.MultipleChoice)
+        @if (question.Type == QuestionType.SingleChoice)
         {
             <div class="form-group card mt-2 mb-2 p-4">
                 <label>Answers</label>
                 @foreach (var answer in question.Answers)
                 {
                     <div class="input-group mb-2">
+                        <div class="input-group-prepend">
+                            <div class="input-group-text">
+                                <input type="checkbox" @bind="answer.IsCorrect"
+                                @onclick="(e) => HandleSingleChoiceCheckboxChange(question, answer)" />
+                            </div>
+                        </div>
                         <InputText class="form-control" @bind-Value="answer.Text" />
                         @if (question.Answers.Count > 2)
                         {
                             <div class="input-group-append">
-                                <button type="button" class="btn btn-danger" @onclick="() => RemoveAnswer(question, answer)"><i
-                                        class="fas fa-trash"></i></button>
+                                <button type="button" class="btn btn-danger" @onclick="() => RemoveAnswer(question, answer)">
+                                    <i class="fas fa-trash"></i>
+                                </button>
                             </div>
                         }
                     </div>
@@ -71,6 +77,33 @@ else
                 <button type="button" class="btn btn-secondary mb-2" @onclick="() => AddAnswer(question)">Add Answer</button>
             </div>
         }
+        else if (question.Type == QuestionType.MultipleChoice)
+        {
+            <div class="form-group card mt-2 mb-2 p-4">
+                <label>Answers</label>
+                @foreach (var answer in question.Answers)
+                {
+                    <div class="input-group mb-2">
+                        <div class="input-group-prepend">
+                            <div class="input-group-text">
+                                <input type="checkbox" @bind="answer.IsCorrect" />
+                            </div>
+                        </div>
+                        <InputText class="form-control" @bind-Value="answer.Text" />
+                        @if (question.Answers.Count > 2)
+                        {
+                            <div class="input-group-append">
+                                <button type="button" class="btn btn-danger" @onclick="() => RemoveAnswer(question, answer)">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        }
+                    </div>
+                }
+                <button type="button" class="btn btn-secondary mb-2" @onclick="() => AddAnswer(question)">Add Answer</button>
+            </div>
+        }
+
         @if (survey.Questions.Count > 1)
         {
             <div class="text-center">
@@ -118,30 +151,46 @@ else
             Navigation.NavigateTo("/survey/create");
             return;
             @* EditMode = true;
-            var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
-            string currentUserId = authState.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+string currentUserId = authState.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
 
-            Guid.TryParse(SurveyIdString, out Guid SurveyId);
-            survey = await SurveyService.GetSurveyByIdAsync(SurveyId);
-            if (survey == null)
-            {
-                survey = new Survey
-                    {
-                        Id = Guid.NewGuid()
-                    };
-                AddQuestion();
-            }
-            else if (survey.UserId != currentUserId)
-            {
-                Navigation.NavigateTo("/Survey/Not-Authorized");
-                return;
-            } *@
+Guid.TryParse(SurveyIdString, out Guid SurveyId);
+survey = await SurveyService.GetSurveyByIdAsync(SurveyId);
+if (survey == null)
+{
+survey = new Survey
+{
+Id = Guid.NewGuid()
+};
+AddQuestion();
+}
+else if (survey.UserId != currentUserId)
+{
+Navigation.NavigateTo("/Survey/Not-Authorized");
+return;
+} *@
         }
     }
-
+    private void HandleSingleChoiceCheckboxChange(Question question, Answer selectedAnswer)
+    {
+        foreach (var answer in question.Answers)
+        {
+            if (answer != selectedAnswer)
+            {
+                answer.IsCorrect = false;
+            }
+        }
+    }
     private void AddQuestion()
     {
-        survey.Questions.Add(new Question { Id = Guid.NewGuid(), Position = QuestionPosition, Title = "Question", Answers = new List<Answer>() });
+        survey.Questions.Add(new Question
+            {
+                Id = Guid.NewGuid(),
+                Position = QuestionPosition,
+                Title = "Question",
+                Answers = new
+            List<Answer>()
+            });
         survey.Questions.Last().Answers.Add(new() { Text = "Answer" });
         survey.Questions.Last().Answers.Add(new() { Text = "Answer" });
         QuestionPosition++;
@@ -194,6 +243,7 @@ else
         }
         else
         {
+            survey.IsQuiz = true;
             await SurveyService.AddSurveyAsync(survey);
         }
         Navigation.NavigateTo("survey/success");

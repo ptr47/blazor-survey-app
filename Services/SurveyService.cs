@@ -11,7 +11,7 @@ namespace WebApp.Services
         Task DeleteSurveyAsync(Survey survey);
         Task<Survey?> GetSurveyByIdAsync(Guid surveyId);
         Task<bool> UpdateSurveyAsync(Survey updatedSurvey);
-        Task SubmitFeedbackAsync(Feedback feedback);
+        Task SubmitFeedbackAsync(FeedbackAnswer feedback);
     }
 
     public class SurveyService(SurveyContext context) : ISurveyService
@@ -95,7 +95,7 @@ namespace WebApp.Services
             }
         }
 
-        public async Task SubmitFeedbackAsync(Feedback feedback)
+        public async Task SubmitFeedbackAsync(FeedbackAnswer feedback)
         {
             _context.Feedbacks.Add(feedback);
             await _context.SaveChangesAsync();

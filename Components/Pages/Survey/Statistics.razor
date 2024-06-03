@@ -1,1 +1,102 @@
-<PageTitle>Statistics</PageTitle>
+@page "/survey/statistics/{surveyId:guid}"
+@rendermode InteractiveServer
+@inject IJSRuntime JS
+
+<PageTitle>View Survey</PageTitle>
+<AuthorizeView>
+    <NotAuthorized>
+        <WebApp.Components.Account.Shared.RedirectToLogin />
+    </NotAuthorized>
+</AuthorizeView>
+
+
+<h1>@survey.Title</h1>
+
+@{
+    var questionNumber = 1;
+}
+
+@foreach (var question in survey.Questions)
+{
+    <div class="mb-3 card p-4">
+    <h4 class="mb-3">@if (question.IsRequired)
+            {
+                <span>*</span>
+            } @(questionNumber). @question.Title</h4>
+        @if (question.Type == QuestionType.SingleChoice)
+        {
+            foreach (var answer in question.Answers)
+            {
+                <div class="form-check mb-2">
+                    <input type="radio" class="form-check-input" name="@($"answer_{question.Id}")"
+                        id="@($"answer_{question.Id}_{answer.Id}")" value="@(answer.Id)" />
+                    <label class="form-check-label" for="@($"answer_{question.Id}_{answer.Id}")">@answer.Text</label>
+                    @if (survey.IsQuiz && (answer.IsCorrect==true))
+                    {
+                        <span class="ml-2 text-success">&#10004;</span>
+                    }
+                </div>
+            }
+        }
+        else if (question.Type == QuestionType.MultipleChoice)
+        {
+            foreach (var answer in question.Answers)
+            {
+                <div class="form-check mb-2">
+                    <input type="checkbox" class="form-check-input" id="@($"answer_{question.Id}_{answer.Id}")"
+                        value="@(answer.Id)" />
+                    <label class="form-check-label" for="@($"answer_{question.Id}_{answer.Id}")">@answer.Text</label>
+                    @if (survey.IsQuiz && (answer.IsCorrect==true))
+                    {
+                        <span class="ml-2 text-success">&#10004;</span>
+                    }
+                </div>
+            }
+        }
+        else
+        {
+            <input type="textarea" class="form-control" rows="3" />
+        }
+    </div>
+
+    questionNumber++;
+}
+
+<button class="btn btn-primary" @onclick="ExportToPdf">Export to PDF</button>
+
+@code {
+    [Parameter]
+    public Guid surveyId { get; set; }
+
+    public Survey survey;
+
+    protected override async Task OnInitializedAsync()
+    {
+        survey = await SurveyService.GetSurveyByIdAsync(surveyId);
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        string currentUserId = authState.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        if (survey == null)
+        {
+            Navigation.NavigateTo("/404");
+            return;
+        }
+        if (survey.UserId != currentUserId)
+        {
+            Navigation.NavigateTo("/Survey/Not-Authorized");
+            return;
+        }
+    }
+    private async Task ExportToPdf()
+    {
+        var questions = survey.Questions.Select(q => new
+        {
+            title = q.Title,
+            type = q.Type == QuestionType.SingleChoice ? "SingleChoice" :
+        q.Type == QuestionType.MultipleChoice ? "MultipleChoice" : "OpenEnded",
+            answers = q.Answers.Select(a => a.Text).ToList(),
+            isRequired = q.IsRequired
+        }).ToList();
+
+        await JS.InvokeVoidAsync("generatePdf", survey.Title, questions);
+    }
+}

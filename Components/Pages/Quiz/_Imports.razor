@@ -1,0 +1,10 @@
+@using WebApp.Models
+@using WebApp.Data
+@using System.ComponentModel.DataAnnotations
+@using Microsoft.AspNetCore.Components.Authorization
+@using Microsoft.EntityFrameworkCore
+
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject SurveyContext SurveyContext
+@inject NavigationManager Navigation
+@inject ISurveyService SurveyService

@@ -6,7 +6,7 @@ namespace WebApp.Data
     public class SurveyContext(DbContextOptions<SurveyContext> options) : DbContext(options)
     {
         public DbSet<Survey> Surveys { get; set; }
-        public DbSet<Feedback> Feedbacks { get; set; }
+        public DbSet<FeedbackAnswer> Feedbacks { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

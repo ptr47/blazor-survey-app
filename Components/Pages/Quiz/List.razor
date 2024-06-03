@@ -1,4 +1,4 @@
-@page "/survey/list"
+@page "/quiz/list"
 
 @rendermode InteractiveServer
 
@@ -16,13 +16,13 @@
 }
 else if (surveys.Count == 0)
 {
-    <p>No surveys found.</p>
+    <p>No quizes found.</p>
 }
 else
 {
     @foreach (var survey in surveys)
     {
-        if (!survey.IsQuiz)
+        if (survey.IsQuiz)
         {
             <div class="p-4 m-2 card" @onclick="() => ShowSurveyDetails(survey)">
     <div class="d-flex justify-content-between align-items-center mb-2">
@@ -63,11 +63,6 @@ else
     {
         await SurveyService.DeleteSurveyAsync(survey);
         surveys.Remove(survey);
-    }
-
-    private void ShowStatistics(Survey survey)
-    {
-        // Implement statistics display logic here
     }
 
     private void ShowSurveyDetails(Survey survey)
